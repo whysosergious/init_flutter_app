@@ -18,12 +18,12 @@ import '../main.dart';
 extension CalculateViewportDims on int {
   /// screen height
   double vh() {
-    double a = viewportDims.height / 100 * this;
-    return a;
+    double result = viewportDims.height / 100 * this;
+    return result;
   }
   /// screen width
   double vw() {
-    double a = viewportDims.width / 100 * this;
-    return a;
+    double result = viewportDims.width / 100 * this;
+    return result;
   }
 }

@@ -48,6 +48,10 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - ass/icons/pages.png
+    - ass/icons/message_bubble.png
+    - ass/icons/reddit.png
+    - ass/icons/up_vote.png
+    - ass/icons/down_vote.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -61,18 +65,21 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: EncSans
+    - family: Montserrat
       fonts:
-        - asset: ass/fonts/EncodeSans-Var.ttf
-    - family: Advent
-      fonts:
-        - asset: ass/fonts/AdventPro-Bold.ttf
-    - family: Mistral
-      fonts:
-        - asset: ass/fonts/Mistral.ttf
+        - asset: ass/fonts/Montserrat-Regular.ttf
+          weight: 400
+        - asset: ass/fonts/Montserrat-Bold.ttf
+          weight: 800
     - family: RoboSlab
       fonts:
         - asset: ass/fonts/RobotoSlab-Regular.ttf
+          weight: 400
+        - asset: ass/fonts/RobotoSlab-Medium.ttf
+          weight: 600
+        - asset: ass/fonts/RobotoSlab-Bold.ttf
+          weight: 800
+
 
   #
   # For details regarding fonts from package dependencies,

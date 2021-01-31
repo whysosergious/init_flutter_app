@@ -3,6 +3,8 @@
 
 // flutter is nothing without material design huh..
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // logic
 import 'methods/calc.dart';
@@ -17,8 +19,81 @@ const String userThumb = 'https://i1.sndcdn.com/avatars-000714205285-8ez60r-t240
 String postThumb = 'https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7ce6eb0f362e7.jpg';
 
 
-void main() => runApp(
+String subreddit = 'doggos';
+String fetchLimit = '3';
+PostList posts = new PostList();
 
+
+
+
+
+class PostList {
+  List json;
+  List<PostData> list;
+
+  Future<List<Widget>> fetchData() async {
+    final response = await http.get('https://www.reddit.com/r/$subreddit.json?limit=$fetchLimit&raw_json=1');
+    json = jsonDecode(response.body)['data']['children'];
+    this.sort( this.json );
+    return [Post(this.list[0]), Post(this.list[1]), Post(this.list[2])];
+  }
+
+  void sort( List json ) {
+    this.list = [];
+    for ( int i=0; i<this.json.length; i++ ) {
+      this.list.add( PostData.createEntry( json[i]['data'] ) );
+    }
+  }
+}
+
+class PostData {
+  final String id;
+  final String author;
+  final String title;
+  final String selftext;
+  final int score;
+  final int timeStamp;
+
+  final List images;
+  final bool isVideo;
+  final String video;
+  final int numComments;
+  final String permalink;
+  List comments;
+
+  PostData({
+    this.id,
+    this.author,
+    this.title,
+    this.selftext,
+    this.score,
+    this.timeStamp,
+    this.images,
+    this.isVideo,
+    this.video,
+    this.numComments,
+    this.permalink
+  });
+
+  factory PostData.createEntry( Map json ) {
+    return PostData(
+      id: json['id'],
+      author: json['author'],
+      title: json['title'],
+      selftext: json['selftext'],
+      score: json['score'],
+      timeStamp: json['created_utc'].toInt(),
+      images: json['preview']['images'],
+      isVideo: json['isVideo'],
+      // video: json['secure_media']['reddit_video']['fallback_url'],
+      numComments: json['num_comments'],
+      permalink: json['permalink']
+    );
+  }
+}
+
+
+void main() => runApp(
   MaterialApp(
     theme: mainTheme(),
     home: Body(),
@@ -36,33 +111,47 @@ class Body extends StatelessWidget {
     /// setting context size
     viewportDims = MediaQuery.of(context).size;
 
-    return Scaffold(
+    return new Scaffold(
 
       body: Center(
 
-        child: new SingleChildScrollView(
-          child:Column(
-            children: [
-              Post(),
-              Post(),
-              Post(),
-              Post(),
-              Post(),
-              Post(),
-              Post(),
-              Post(),
-              Post(),
-              Post(),
-            ],
-          ),
+      child: new SingleChildScrollView(
+        child: Page(),
         ),
       ),
+
     );
   }
 }
 
+class Page extends StatefulWidget {
+  @override
+  PageState createState() {
+    return new PageState();
+  }
+}
+
+class PageState extends State<Page> {
+  List<Widget> postList = [];
+
+  PageState() {
+    posts.fetchData().then((val) => setState(() {
+        postList = val;
+      })
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: postList,
+    );
+  }
+}
 
 class Post extends StatelessWidget {
+  final PostData data;
+  Post(this.data);
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -73,11 +162,11 @@ class Post extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children:  [
-          textGroup(title: 'Post title'),
+          textGroup(title: data.title, user: 'u/${data.author}', timeStamp: '${data.timeStamp}', rating: '${data.score}'),
 
-          Image.network(postThumb),
+          Image.network(data.images[0]['source']['url']),
           selfText(),
-          detailsGroup(commentsCount: '2.4k Comments'),
+          detailsGroup(commentsCount: '${data.score} Comments'),
           textGroup(comment: 'Comment text', rating: '66k'),
           textGroup(comment: 'Comment text'),
           loadMoreComments(),
@@ -96,7 +185,9 @@ Widget textGroup({
   String comment='*comment',
   String user='*u/user',
   String timeStamp='*time_stamp',
-  String rating='*rating'
+  String rating='*rating',
+  bool isReply = false,
+  Widget reply
 
 }) => Container(
 
@@ -107,15 +198,15 @@ Widget textGroup({
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
 
-    children: [
+    children: <Widget>[
       Container(
         margin: EdgeInsets.only(bottom: 10.0, right: 10.0),
         child: Row(
 
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: <Widget>[
             Row(
-              children: [
+              children: <Widget>[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(24.0),
                   child: Image.network(userThumb, height: 24),
@@ -131,7 +222,7 @@ Widget textGroup({
               ],
             ),
             Row(
-              children: [
+              children: <Widget>[
                 Image.asset('ass/icons/up_vote.png', height: 20.0),
 
                 SizedBox(width: 7.0),  // _MARGIN_
@@ -150,6 +241,8 @@ Widget textGroup({
   ),
 );
 
+
+
 Widget detailsGroup({
 
   String commentsCount,
@@ -161,12 +254,12 @@ Widget detailsGroup({
   padding: EdgeInsets.only(top: 10.0, right: 16.0, bottom: 10.0, left: 10.0),
   // margin: EdgeInsets.only(bottom: 10.0),
   child: Column(
-    children: [
+    children: <Widget>[
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               Image.asset('ass/icons/message_bubble.png', height: 20.0),
 
               SizedBox(width: 10.0),  // _MARGIN_
@@ -175,7 +268,7 @@ Widget detailsGroup({
             ],
           ),
           Row(
-            children: [
+            children: <Widget>[
               Image.asset('ass/icons/reddit.png', height: 20.0),
 
               SizedBox(width: 10.0),  // _MARGIN_
@@ -207,7 +300,7 @@ Widget selfText() => Container(
   width: double.infinity,
   padding: EdgeInsets.only(top: 10.0, right: 10.0, bottom: 10.0, left: 10.0),
   child: Column(
-    children: [
+    children: <Widget>[
       Align(
         alignment: Alignment.topLeft,
         child: Text('Post text', style: textStyle.body),
@@ -242,14 +335,14 @@ Widget loadMoreComments() => Container(
 
 
 
-class Comment extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey[900],
-      width: double.infinity,
-      padding: EdgeInsets.all(10.0),
-      // child: textStyle.comment('Comment text'),
-    );
-  }
-}
+// class Comment extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       color: Colors.grey[900],
+//       width: double.infinity,
+//       padding: EdgeInsets.all(10.0),
+//       // child: textStyle.comment('Comment text'),
+//     );
+//   }
+// }

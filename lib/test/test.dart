@@ -1,67 +1,192 @@
 import 'package:flutter/material.dart';
 
+// logic
+import '../methods/calc.dart';
 
-class Test extends StatelessWidget {
+// typography
+import '../typography/text_styles.dart';
+
+/// dev standard vars
+const String userThumb = 'https://i1.sndcdn.com/avatars-000714205285-8ez60r-t240x240.jpg';
+String postThumb = 'https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7ce6eb0f362e7.jpg';
+
+class Post extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body:
-        Center(
-          child:
-            Text(
-              'This is more suitable for body text.',
-              style: TextStyle(
-                fontFamily: 'EncSans',
-                fontSize: 18.0,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.7,
-              ),
-            ),
-        ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: Text('Click'),
-        backgroundColor: Colors.purple[900],
+    return Container(
+      width: 94.vw(),
+      margin: EdgeInsets.only(top: 10.0, bottom: 20.0),
+
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children:  [
+          textGroup(title: 'Post title'),
+
+          Image.network(postThumb),
+          selfText(),
+          detailsGroup(commentsCount: '2.4k Comments'),
+          textGroup(comment: 'Comment text', rating: '66k'),
+          textGroup(comment: 'Comment text'),
+          loadMoreComments(),
+        ],
       ),
     );
   }
 }
 
 
+/// returns either a post title or comment. [ title overrides comment ]
+Widget textGroup({
+
+  String userThumb = userThumb,
+  String title,
+  String comment='*comment',
+  String user='*u/user',
+  String timeStamp='*time_stamp',
+  String rating='*rating',
+  bool isReply = false,
+  Widget reply
+
+}) => Container(
+
+  color: Colors.grey[900],
+  width: double.infinity,
+  padding: EdgeInsets.all(10.0),
+  child: Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+
+    children: <Widget>[
+      Container(
+        margin: EdgeInsets.only(bottom: 10.0, right: 10.0),
+        child: Row(
+
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(24.0),
+                  child: Image.network(userThumb, height: 24),
+                ),
+
+                SizedBox(width: 10.0),  // _MARGIN_
+
+                Text(user, style: textStyle.details.custom(color: Colors.orange[700])),
+
+                SizedBox(width: 20.0),  // _MARGIN_
+
+                Text(timeStamp, style: textStyle.details),
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                Image.asset('ass/icons/up_vote.png', height: 20.0),
+
+                SizedBox(width: 7.0),  // _MARGIN_
+
+                Text(rating, style: textStyle.stats.custom(fontSize: 15.5, color: Colors.white)),
+              ],
+            ),
+
+          ],
+        ),
+      ),
+      (title != null)
+        ? Text(title, style: textStyle.title)
+        : Text(comment, style: textStyle.bodySmall),
+    ],
+  ),
+);
 
 
 
-class Body extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body:
-        Center(
-          child: ListView(
-            children: [
-              Image.network('https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7ce6eb0f362e7.jpg'),
-              Image.network('https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7ce6eb0f362e7.jpg'),
-              Image.network('https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7ce6eb0f362e7.jpg'),
-              Image.network('https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7ce6eb0f362e7.jpg'),
-              Image.network('https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7ce6eb0f362e7.jpg'),
-              Image.network('https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7ce6eb0f362e7.jpg'),
+Widget detailsGroup({
+
+  String commentsCount,
+
+}) => Container(
+  color: Colors.black45,
+  // color: Colors.grey[900],
+  width: double.infinity,
+  padding: EdgeInsets.only(top: 10.0, right: 16.0, bottom: 10.0, left: 10.0),
+  // margin: EdgeInsets.only(bottom: 10.0),
+  child: Column(
+    children: <Widget>[
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Image.asset('ass/icons/message_bubble.png', height: 20.0),
+
+              SizedBox(width: 10.0),  // _MARGIN_
+
+              Text(commentsCount, style: textStyle.stats),
             ],
           ),
+          Row(
+            children: <Widget>[
+              Image.asset('ass/icons/reddit.png', height: 20.0),
 
-        ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.purple[900],
-        onPressed: () {},
+              SizedBox(width: 10.0),  // _MARGIN_
 
-child: Image(image:
-  AssetImage('ass/icons/pages.png'),
-  width: 37.0,
+              Text('Link', style: textStyle.details.custom(color: Colors.blue)),
+            ],
+          ),
+        ],
+      ),
 
+      // SizedBox(height: 10.0),  // _MARGIN_
+
+      // const SizedBox(
+      //   width: 260.0,
+      //   height: 1.0,
+      //   child: const DecoratedBox(
+      //     decoration: const BoxDecoration(
+      //       color: Colors.black12,
+      //     ),
+      //   ),
+      // ),
+    ],
   ),
-        ),
+);
 
 
+Widget selfText() => Container(
+  color: Colors.grey[900],
+  width: double.infinity,
+  padding: EdgeInsets.only(top: 10.0, right: 10.0, bottom: 10.0, left: 10.0),
+  child: Column(
+    children: <Widget>[
+      Align(
+        alignment: Alignment.topLeft,
+        child: Text('Post text', style: textStyle.body),
+      ),
 
-    );
-  }
-}
+      SizedBox(height: 4.0),  // _MARGIN_
+
+      // const SizedBox(
+      //   width: 260.0,
+      //   height: 1.0,
+      //   child: const DecoratedBox(
+      //     decoration: const BoxDecoration(
+      //       color: Colors.black12,
+      //     ),
+      //   ),
+      // ),
+    ],
+  ),
+);
+
+Widget loadMoreComments() => Container(
+  color: Colors.black54,
+  width: double.infinity,
+  padding: EdgeInsets.only(top: 14.0, right: 16.0, bottom: 20.0, left: 10.0),
+  // margin: EdgeInsets.only(bottom: 10.0),
+  child: Center(
+    child: Text('View More Comments', style: textStyle.stats.custom(fontSize: 15.5)
+    ),
+  ),
+);

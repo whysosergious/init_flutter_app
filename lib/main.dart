@@ -20,7 +20,7 @@ String postThumb = 'https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7
 
 
 String subreddit = 'doggos';
-String fetchLimit = '3';
+String fetchLimit = '10';
 PostList posts = new PostList();
 
 
@@ -30,18 +30,21 @@ PostList posts = new PostList();
 class PostList {
   List json;
   List<PostData> list;
+  List<Widget> widgets;
 
   Future<List<Widget>> fetchData() async {
     final response = await http.get('https://www.reddit.com/r/$subreddit.json?limit=$fetchLimit&raw_json=1');
     json = jsonDecode(response.body)['data']['children'];
     this.sort( this.json );
-    return [Post(this.list[0]), Post(this.list[1]), Post(this.list[2])];
+    return widgets;
   }
 
   void sort( List json ) {
     this.list = [];
+    this.widgets = [];
     for ( int i=0; i<this.json.length; i++ ) {
       this.list.add( PostData.createEntry( json[i]['data'] ) );
+      this.widgets.add(Post(this.list[i]));
     }
   }
 }
@@ -83,7 +86,7 @@ class PostData {
       selftext: json['selftext'],
       score: json['score'],
       timeStamp: json['created_utc'].toInt(),
-      images: json['preview']['images'],
+      images: json['preview'] != null ? json['preview']['images'] : [{"source": {"url": ""}}],    //**TEMP */
       isVideo: json['isVideo'],
       // video: json['secure_media']['reddit_video']['fallback_url'],
       numComments: json['num_comments'],
@@ -92,6 +95,22 @@ class PostData {
   }
 }
 
+bool postOpen = false;
+class SecondRoute extends StatelessWidget {
+  final Widget post;
+  SecondRoute(this.post);
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+
+        child: new SingleChildScrollView(
+          child: post,
+        ),
+      ),
+    );
+  }
+}
 
 void main() => runApp(
   MaterialApp(
@@ -149,28 +168,68 @@ class PageState extends State<Page> {
   }
 }
 
-class Post extends StatelessWidget {
+class Post extends StatefulWidget {
   final PostData data;
   Post(this.data);
   @override
+  PostState createState() {
+    return new PostState(this);
+  }
+}
+
+int postWidth = 94;
+class PostState extends State<Post> {
+  Post post;
+  PostData data;
+  // int postWidth = 94;
+
+  PostState(post) {
+    this.post = post;
+    this.data = post.data;
+  }
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 94.vw(),
-      margin: EdgeInsets.only(top: 10.0, bottom: 20.0),
+    return GestureDetector(
+        onTap: () {
 
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children:  [
-          textGroup(title: data.title, user: 'u/${data.author}', timeStamp: '${data.timeStamp}', rating: '${data.score}'),
+          if ( postOpen ) {
 
-          Image.network(data.images[0]['source']['url']),
-          selfText(),
-          detailsGroup(commentsCount: '${data.score} Comments'),
-          textGroup(comment: 'Comment text', rating: '66k'),
-          textGroup(comment: 'Comment text'),
-          loadMoreComments(),
-        ],
+            Navigator.pop(context);
+          }
+          if ( !postOpen ) {
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SecondRoute(post)),
+            );
+          }
+
+          postOpen = postOpen ? false : true;
+          postWidth = postOpen ? 100 : 94;
+
+          // setState(() {
+          //   postWidth = postOpen ? 100 : 94;
+          // });
+          print("Container clicked");
+        },
+        child: Container(
+        width: postWidth.vw(),
+        margin: EdgeInsets.only(top: 10.0, bottom: 20.0),
+
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children:  [
+            textGroup(title: data.title, user: 'u/${data.author}', timeStamp: '${data.timeStamp}', rating: '${data.score}'),
+
+            Image.network(data.images[0]['source']['url']),
+            selfText(),
+            detailsGroup(commentsCount: '${data.score} Comments'),
+            textGroup(comment: 'Comment text', rating: '66k'),
+            textGroup(comment: 'Comment text'),
+            loadMoreComments(),
+          ],
+        ),
       ),
     );
   }

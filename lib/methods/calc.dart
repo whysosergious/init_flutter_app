@@ -26,4 +26,10 @@ extension CalculateViewportDims on int {
     double result = viewportDims.width / 100 * this;
     return result;
   }
+
+  /// calculate AR from image width and return the haight
+  double ar() {
+    double result = this / viewportDims.height;
+    return result;
+  }
 }

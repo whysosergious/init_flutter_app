@@ -1,49 +1,21 @@
+
 import 'package:flutter/material.dart';
-
-// logic
-import '../methods/calc.dart';
-
-// typography
 import '../typography/text_styles.dart';
 
-/// dev standard vars
+
 const String userThumb = 'https://i1.sndcdn.com/avatars-000714205285-8ez60r-t240x240.jpg';
 String postThumb = 'https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7ce6eb0f362e7.jpg';
-
-class Post extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 94.vw(),
-      margin: EdgeInsets.only(top: 10.0, bottom: 20.0),
-
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children:  [
-          textGroup(title: 'Post title'),
-
-          Image.network(postThumb),
-          selfText(),
-          detailsGroup(commentsCount: '2.4k Comments'),
-          textGroup(comment: 'Comment text', rating: '66k'),
-          textGroup(comment: 'Comment text'),
-          loadMoreComments(),
-        ],
-      ),
-    );
-  }
-}
 
 
 /// returns either a post title or comment. [ title overrides comment ]
 Widget textGroup({
 
+  double paddingLeft=10.0,
   String userThumb = userThumb,
   String title,
   String comment='*comment',
   String user='*u/user',
-  String timeStamp='*time_stamp',
+  String timestamp='*time_stamp',
   String rating='*rating',
   bool isReply = false,
   Widget reply
@@ -52,7 +24,7 @@ Widget textGroup({
 
   color: Colors.grey[900],
   width: double.infinity,
-  padding: EdgeInsets.all(10.0),
+  padding: EdgeInsets.only(top: 10.0, right: 10.0, bottom: 10.0, left: paddingLeft),
   child: Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,9 +47,9 @@ Widget textGroup({
 
                 Text(user, style: textStyle.details.custom(color: Colors.orange[700])),
 
-                SizedBox(width: 20.0),  // _MARGIN_
+                SizedBox(width: 10.0),  // _MARGIN_
 
-                Text(timeStamp, style: textStyle.details),
+                Text(timestamp, style: textStyle.details),
               ],
             ),
             Row(
@@ -154,7 +126,7 @@ Widget detailsGroup({
 );
 
 
-Widget selfText() => Container(
+Widget selfText(String selftext) => Container(
   color: Colors.grey[900],
   width: double.infinity,
   padding: EdgeInsets.only(top: 10.0, right: 10.0, bottom: 10.0, left: 10.0),
@@ -162,7 +134,7 @@ Widget selfText() => Container(
     children: <Widget>[
       Align(
         alignment: Alignment.topLeft,
-        child: Text('Post text', style: textStyle.body),
+        child: Text(selftext, style: textStyle.body),
       ),
 
       SizedBox(height: 4.0),  // _MARGIN_
@@ -181,7 +153,7 @@ Widget selfText() => Container(
 );
 
 Widget loadMoreComments() => Container(
-  color: Colors.black54,
+  color: Color(0xFF101211).withOpacity(1),
   width: double.infinity,
   padding: EdgeInsets.only(top: 14.0, right: 16.0, bottom: 20.0, left: 10.0),
   // margin: EdgeInsets.only(bottom: 10.0),

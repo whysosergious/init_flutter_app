@@ -5,12 +5,17 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
+// import 'package:intl/intl.dart';
 
 // logic
 import 'methods/calc.dart';
 
 // typography
 import 'typography/text_styles.dart';
+
+// widgets
+import 'widgets/post.dart';
 
 
 
@@ -20,17 +25,19 @@ String postThumb = 'https://i.pinimg.com/originals/51/0d/a9/510da98abbe03f7ff9a7
 
 
 String subreddit = 'doggos';
-String fetchLimit = '10';
+String fetchLimit = '14';
 PostList posts = new PostList();
 
 
 
 
 
+List fbb = [];
 class PostList {
   List json;
   List<PostData> list;
   List<Widget> widgets;
+  List fb;
 
   Future<List<Widget>> fetchData() async {
     final response = await http.get('https://www.reddit.com/r/$subreddit.json?limit=$fetchLimit&raw_json=1');
@@ -42,12 +49,48 @@ class PostList {
   void sort( List json ) {
     this.list = [];
     this.widgets = [];
+    this.fb = [];
     for ( int i=0; i<this.json.length; i++ ) {
       this.list.add( PostData.createEntry( json[i]['data'] ) );
       this.widgets.add(Post(this.list[i]));
+      // this.widgets.add(SizedBox(height: 20.0));    // _STATIC_MARGIN_
+      this.fb.add( box );
     }
+    fbb = this.fb;
   }
 }
+
+
+Widget box ({ ScrollController controller, GlobalKey boxKey, Offset position }) => AnimatedBuilder(
+              animation: controller,
+              child: Container(
+                  // key: boxes['0']['key'],
+                  key: boxKey,
+                  width: 140,
+                  height: 40,
+                  color: Colors.red,
+                ),
+
+
+
+              builder: (BuildContext context, Widget child) {
+                // if ( rect != null ) {
+                //   position = rect.localToGlobal(Offset.zero);
+                //   print(position.dy);
+                // }
+
+                return AnimatedContainer(
+                  duration: Duration(milliseconds: 400),
+                  curve: Curves.decelerate,
+                  height: controller.offset / 4 + 40,
+                  width: 50,
+                  color: Colors.green,
+                  child: child,
+                );
+              },
+            );
+
+double redditStamp;
 
 class PostData {
   final String id;
@@ -55,7 +98,7 @@ class PostData {
   final String title;
   final String selftext;
   final int score;
-  final int timeStamp;
+  final String timestamp;
 
   final List images;
   final bool isVideo;
@@ -63,6 +106,7 @@ class PostData {
   final int numComments;
   final String permalink;
   List comments;
+  bool viewing = false;
 
   PostData({
     this.id,
@@ -70,7 +114,7 @@ class PostData {
     this.title,
     this.selftext,
     this.score,
-    this.timeStamp,
+    this.timestamp,
     this.images,
     this.isVideo,
     this.video,
@@ -85,7 +129,7 @@ class PostData {
       title: json['title'],
       selftext: json['selftext'],
       score: json['score'],
-      timeStamp: json['created_utc'].toInt(),
+      timestamp: (json['created_utc'] as double).humanTimestamp(),
       images: json['preview'] != null ? json['preview']['images'] : [{"source": {"url": ""}}],    //**TEMP */
       isVideo: json['isVideo'],
       // video: json['secure_media']['reddit_video']['fallback_url'],
@@ -95,27 +139,98 @@ class PostData {
   }
 }
 
-bool postOpen = false;
-class SecondRoute extends StatelessWidget {
-  final Widget post;
-  SecondRoute(this.post);
+double currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch / 1000;
+extension TimeStampFormat on double {
+  String humanTimestamp() {
+    double time = (currentUnixTimeStamp - this) / 60;
+
+    String result = time > 107040 ? '${ time ~/ 107040 } years ago'
+      : time > 53520 ? 'a year ago'
+      : time > 8920 ? '${ time ~/ 1440 } months ago'
+      : time > 4460 ? 'a month ago'
+      : time > 2880 ? '${ time ~/ 1440 } days ago'
+      : time > 1440 ? 'a day ago'
+      : time > 120 ? '${ time ~/ 60 } hours ago'
+      : time > 60 ? 'an hour ago'
+      : time > 1 ? '${time.toInt()} minutes ago' : 'a minute ago' ;
+
+    return result;
+  }
+}
+
+
+class ViewPost extends StatelessWidget {
+  final PostData postData;
+  ViewPost(this.postData) {
+    postData.viewing = true;
+  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
+    viewingPost = true;
+    return WillPopScope(
+      child: Scaffold(
+        backgroundColor: Colors.black.withOpacity(0),
+        body: Stack(
+          children: <Widget>[
 
-        child: new SingleChildScrollView(
-          child: post,
+            Align(
+              alignment: Alignment.topCenter,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    Post(postData),
+                    textGroup(comment: 'Comment text', rating: '66k'),
+                    textGroup(comment: 'Comment text'),
+                    loadMoreComments(),
+                  ],
+                ),
+              ),
+            ),
+
+            Positioned(
+              top: 24,
+              left: 2,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  height: 36,
+                  width: 36,
+
+                  child: Hero(
+                    tag: 'back-button_${postData.id}',
+                    child: Container(
+                      padding: EdgeInsets.only(top: 8, right: 11, bottom: 8, left: 9),
+                      color: Colors.grey[900].withAlpha(177),
+                      child: Image.asset('ass/icons/left_arrow.png'),
+                    ),
+                  ),
+                )
+              ),
+            ),
+          ],
         ),
       ),
+      onWillPop: () async {
+        closeRoute(context, postData);
+        return false;
+      }
     );
   }
 }
 
+
+
+
 void main() => runApp(
   MaterialApp(
+    // initialRoute: '/home',
+    // routes: <String, WidgetBuilder> {
+    //   '/home': (BuildContext context) => Home(),
+    //   // '/pages': (BuildContext context) => Pages(),
+    //   // '/viewpost': (BuildContext context) => ViewPost(),
+    // },
     theme: mainTheme(),
-    home: Body(),
+    home: Home(),
   ),
 );
 
@@ -124,110 +239,292 @@ void main() => runApp(
 Size viewportDims;
 
 /// our main body widget ( for now )
-class Body extends StatelessWidget {
+class Home extends StatelessWidget {
   @override
   Widget build( BuildContext context ) {
     /// setting context size
     viewportDims = MediaQuery.of(context).size;
-
-    return new Scaffold(
-
+    return Scaffold(
       body: Center(
-
-      child: new SingleChildScrollView(
-        child: Page(),
+        child: Container(
+          height: double.infinity,
+          width: 92.vw(),
+          child: Pages(),
         ),
       ),
-
     );
   }
 }
 
-class Page extends StatefulWidget {
+class Pages extends StatefulWidget {
   @override
   PageState createState() {
-    return new PageState();
+    fetch();
+    return PageState();
   }
 }
 
-class PageState extends State<Page> {
-  List<Widget> postList = [];
+List<Widget> postList;
+void fetch() {
+  posts.fetchData().then((val) {
+    postList = val;
+  });
+}
 
-  PageState() {
-    posts.fetchData().then((val) => setState(() {
-        postList = val;
-      })
-    );
+bool fetchNewData = true;
+bool viewingPost;
+class PageState extends State<Pages> {
+  List<Widget> list = postList ?? <Widget>[Container(height: 50, width: 50)];
+  ScrollController controller = ScrollController();
+
+  Map<String, Map<String, dynamic>> boxes = Map<String, Map<String, dynamic>>();
+  List<int> initOffsets = [];
+
+  Offset position;
+List<Widget> a = [];
+
+RenderBox rect;
+  // @override
+  void initState() {
+  super.initState();
+    checkData();
+
+
+
+// boxes = { '0': { 'key': GlobalKey() }};
+boxes['0'] = { 'key': GlobalKey() };
+
+    // controller.addListener(() {
+      // height = (controller.offset ~/ 10).toDouble();
+
+
+    // });
+  }
+
+  // @override
+  void dispose() {
+    super.dispose();
+  }
+
+// yes this is horrible but temporary...
+  bool stateReady = true;
+  void checkData() async {
+
+    if (postList == null) {
+      Timer(Duration(milliseconds: 100), () {
+        checkData();
+        for ( int i = 1; i<4; i++ ) {
+        // boxes['$i'] = { 'key': GlobalKey() };
+        print(i);
+        a.add(this.list[i]);
+        a.add(fbb[i](controller: controller, position: position, boxKey: boxes['0']['key']));
+      }
+      print(boxes);
+      });
+    } else {
+
+      setState(() {
+        this.list = postList;
+        stateReady = true;
+      });
+      stateReady = await awaitChange();
+      Timer(Duration(milliseconds: 400), () {
+        getRect();
+      });
+
+    }
+  }
+
+  Future<bool> awaitChange() async {
+    return true;
+  }
+  void getRect() {
+    rect = boxes['0']['key'].currentContext.findRenderObject();
+    position = rect.localToGlobal(Offset.zero);
+    boxes['0']['rect'] = rect;
+    boxes['0']['init_y'] = position.dy.toInt();
+    initOffsets.add(boxes['0']['init_y']);
+    // Timer(Duration(milliseconds: 200), () {
+      // getRect();
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: postList,
+    print('a');
+    viewingPost = false;
+    return SingleChildScrollView(
+        controller: controller,
+        child: Column(
+        children: [
+
+
+            ...a
+
+
+
+
+          ],
+          ),
+
+
+
+
     );
   }
 }
 
-class Post extends StatefulWidget {
-  final PostData data;
-  Post(this.data);
-  @override
-  PostState createState() {
-    return new PostState(this);
-  }
+
+
+
+
+bool closeRoute( BuildContext context, PostData data ) {
+  data.viewing = false;
+  print(data.viewing);
+  Navigator.of(context).pop('Context closed');
+  return false;
 }
 
 int postWidth = 94;
-class PostState extends State<Post> {
-  Post post;
-  PostData data;
-  // int postWidth = 94;
+bool a = false;
+class Post extends StatelessWidget {
+  final PostData data;
+  Post(this.data);
 
-  PostState(post) {
-    this.post = post;
-    this.data = post.data;
-  }
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Container(
+      child: GestureDetector(
         onTap: () {
 
-          if ( postOpen ) {
 
-            Navigator.pop(context);
-          }
-          if ( !postOpen ) {
+          if ( data.viewing ) {
+            closeRoute(context, data);
+          } else {
+            data.viewing = true;
+            print(data.viewing);
+            Navigator.of(context).push(
+              PageRouteBuilder(
+                opaque: false,
+                transitionDuration: Duration(seconds: 1),
+                reverseTransitionDuration: Duration(seconds: 1),
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SecondRoute(post)),
+                pageBuilder:
+                ( BuildContext context,
+                  Animation<double> animation,
+                Animation<double> secondaryAnimation ) {
+                  return ViewPost(data);
+                  // return Align(
+                  //   child: SizeTransition(
+                  //     sizeFactor: animation,
+                  //     child: ViewPost(data),
+                  //   ),
+                  // );
+                },
+                transitionsBuilder:
+                ( BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                Widget child ) {
+                  return Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizeTransition(
+                      axisAlignment: -1.0,
+                      sizeFactor: animation,
+                      child: child,
+                    ),
+                  );
+                },
+              ),
             );
           }
-
-          postOpen = postOpen ? false : true;
-          postWidth = postOpen ? 100 : 94;
-
-          // setState(() {
-          //   postWidth = postOpen ? 100 : 94;
-          // });
-          print("Container clicked");
         },
-        child: Container(
-        width: postWidth.vw(),
-        margin: EdgeInsets.only(top: 10.0, bottom: 20.0),
-
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children:  [
-            textGroup(title: data.title, user: 'u/${data.author}', timeStamp: '${data.timeStamp}', rating: '${data.score}'),
+          children:  <Widget>[
 
-            Image.network(data.images[0]['source']['url']),
-            selfText(),
-            detailsGroup(commentsCount: '${data.score} Comments'),
-            textGroup(comment: 'Comment text', rating: '66k'),
-            textGroup(comment: 'Comment text'),
-            loadMoreComments(),
+            IntrinsicHeight(
+              child: Row(
+                children: <Widget>[
+
+                  Hero(
+                    tag: 'back-button-padding_${data.id}',
+                    child: Container(
+                      width: viewingPost ? 8.vw() : 0,
+                      color: Colors.grey[900],
+                    ),
+                  ),
+
+                  (() {
+                    if ( !data.viewing ) {
+                      return Container(
+                        height: 0,
+                        width: 0,
+                        child: Hero(
+                          tag: 'back-button_${data.id}',
+                          child: Container(
+                            padding: EdgeInsets.only(top: 8, right: 11, bottom: 8, left: 9),
+                            color: Colors.grey[900].withAlpha(255),
+                            child: Image.asset('ass/icons/left_arrow.png'),
+                          ),
+                        ),
+                      );
+                    } return Container();
+                  })(),
+
+                  Container(
+                    width: 92.vw(),
+                    child: Hero(
+                      tag: 'title_${data.id}',
+                      child: Material(
+                        child: textGroup(title: data.title, user: 'u/${data.author}', timestamp: '${data.timestamp}', rating: '${data.score}'),
+                      ),
+                    ),
+                  ),
+
+
+                ],
+              ),
+            ),
+
+            if ( data.images[0]['source']['url'] != '' )
+              Hero(
+                tag: 'hero-image_${data.id}',
+                child: FadeInImage.assetNetwork(
+                // height: data.images[0]['source']['height'].toDouble() / (data.images[0]['source']['width'] / postWidth.vw()),
+                placeholder: 'ass/detail/loading_image.png',
+                image: data.images[0]['source']['url'],
+              ),
+            ),
+
+            Container(
+              constraints: BoxConstraints(
+                maxHeight: viewingPost ? double.infinity : 0,
+              ),
+              child: Hero(
+                tag: 'selftext_${data.id}',
+                flightShuttleBuilder:
+                  (BuildContext flightContext,
+                    Animation<double> animation,
+                    HeroFlightDirection flightDirection,
+                    BuildContext fromHeroContext,
+                  BuildContext toHeroContext,) {
+
+                    return SingleChildScrollView(
+                      child: fromHeroContext.widget,
+                    );
+                  },
+                child: Material(
+                  child: selfText(data.selftext + 'Post text'),
+                ),
+              ),
+            ),
+
+            Hero(
+              tag: 'details_${data.id}',
+              child: Material( child: detailsGroup(commentsCount: '${data.score} Comments')),
+            ),
+
           ],
         ),
       ),
@@ -235,161 +532,6 @@ class PostState extends State<Post> {
   }
 }
 
-
-/// returns either a post title or comment. [ title overrides comment ]
-Widget textGroup({
-
-  String userThumb = userThumb,
-  String title,
-  String comment='*comment',
-  String user='*u/user',
-  String timeStamp='*time_stamp',
-  String rating='*rating',
-  bool isReply = false,
-  Widget reply
-
-}) => Container(
-
-  color: Colors.grey[900],
-  width: double.infinity,
-  padding: EdgeInsets.all(10.0),
-  child: Column(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.start,
-
-    children: <Widget>[
-      Container(
-        margin: EdgeInsets.only(bottom: 10.0, right: 10.0),
-        child: Row(
-
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(24.0),
-                  child: Image.network(userThumb, height: 24),
-                ),
-
-                SizedBox(width: 10.0),  // _MARGIN_
-
-                Text(user, style: textStyle.details.custom(color: Colors.orange[700])),
-
-                SizedBox(width: 20.0),  // _MARGIN_
-
-                Text(timeStamp, style: textStyle.details),
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                Image.asset('ass/icons/up_vote.png', height: 20.0),
-
-                SizedBox(width: 7.0),  // _MARGIN_
-
-                Text(rating, style: textStyle.stats.custom(fontSize: 15.5, color: Colors.white)),
-              ],
-            ),
-
-          ],
-        ),
-      ),
-      (title != null)
-        ? Text(title, style: textStyle.title)
-        : Text(comment, style: textStyle.bodySmall),
-    ],
-  ),
-);
-
-
-
-Widget detailsGroup({
-
-  String commentsCount,
-
-}) => Container(
-  color: Colors.black45,
-  // color: Colors.grey[900],
-  width: double.infinity,
-  padding: EdgeInsets.only(top: 10.0, right: 16.0, bottom: 10.0, left: 10.0),
-  // margin: EdgeInsets.only(bottom: 10.0),
-  child: Column(
-    children: <Widget>[
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Image.asset('ass/icons/message_bubble.png', height: 20.0),
-
-              SizedBox(width: 10.0),  // _MARGIN_
-
-              Text(commentsCount, style: textStyle.stats),
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              Image.asset('ass/icons/reddit.png', height: 20.0),
-
-              SizedBox(width: 10.0),  // _MARGIN_
-
-              Text('Link', style: textStyle.details.custom(color: Colors.blue)),
-            ],
-          ),
-        ],
-      ),
-
-      // SizedBox(height: 10.0),  // _MARGIN_
-
-      // const SizedBox(
-      //   width: 260.0,
-      //   height: 1.0,
-      //   child: const DecoratedBox(
-      //     decoration: const BoxDecoration(
-      //       color: Colors.black12,
-      //     ),
-      //   ),
-      // ),
-    ],
-  ),
-);
-
-
-Widget selfText() => Container(
-  color: Colors.grey[900],
-  width: double.infinity,
-  padding: EdgeInsets.only(top: 10.0, right: 10.0, bottom: 10.0, left: 10.0),
-  child: Column(
-    children: <Widget>[
-      Align(
-        alignment: Alignment.topLeft,
-        child: Text('Post text', style: textStyle.body),
-      ),
-
-      SizedBox(height: 4.0),  // _MARGIN_
-
-      // const SizedBox(
-      //   width: 260.0,
-      //   height: 1.0,
-      //   child: const DecoratedBox(
-      //     decoration: const BoxDecoration(
-      //       color: Colors.black12,
-      //     ),
-      //   ),
-      // ),
-    ],
-  ),
-);
-
-Widget loadMoreComments() => Container(
-  color: Colors.black54,
-  width: double.infinity,
-  padding: EdgeInsets.only(top: 14.0, right: 16.0, bottom: 20.0, left: 10.0),
-  // margin: EdgeInsets.only(bottom: 10.0),
-  child: Center(
-    child: Text('View More Comments', style: textStyle.stats.custom(fontSize: 15.5)
-    ),
-  ),
-);
 
 
 

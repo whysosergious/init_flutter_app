@@ -24,6 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^0.12.2
+  intl: ^0.16.1
   # flutter_svg: ^0.12.1
 
 
@@ -53,6 +54,8 @@ flutter:
     - ass/icons/reddit.png
     - ass/icons/up_vote.png
     - ass/icons/down_vote.png
+    - ass/icons/left_arrow.png
+    - ass/detail/loading_image.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

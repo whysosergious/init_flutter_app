@@ -237,3 +237,160 @@
 
 //   return result;
 // }
+
+
+
+// items: allDestinations.map((Destination destination) {
+//           return BottomNavigationBarItem(
+//             icon: Icon(destination.icon),
+//             backgroundColor: destination.color,
+//             title: Text(destination.title)
+//           );
+//         }).toList(),
+
+
+
+
+
+
+    // selectedPageIndex = 0;
+    // pages = [
+    //   //The individual tabs.
+    // ];
+
+    // pageController = PageController(initialPage: selectedPageIndex);
+
+// return Scaffold(
+//       body: PageView(
+//         controller: pageController,
+
+//       // child: SingleChildScrollView(
+//       //   controller: controller,
+//       //   child: Column(
+//         children: [
+
+
+//             ...widgets,
+
+
+
+
+//           ],
+//         ),
+//           // ),
+//       // ),
+//     );
+
+
+
+
+
+
+
+
+// height: boxes[index]['visible'] && boxes[index]['pos'].dy > 0 && boxes[index]['pos'].dy < 100.vh() &&
+//                   boxes[index]['pos'].dy < 50.vh() ?
+//                     10.vh() - boxes[index]['pos'].dy * 0.12 :
+//                   boxes[index]['pos'].dy > 50.vh() ?
+//                     boxes[index]['pos'].dy * 0.2 - 8.vh(): 10.vh(),
+
+
+
+
+
+// return AnimatedContainer(
+//         duration: Duration(milliseconds: 1500),
+//         curve: Curves.decelerate,
+//         height: boxes[index]['visible'] && boxes[index]['pos'].dy > 0 && boxes[index]['pos'].dy < 100.vh() &&
+//                   boxes[index]['pos'].dy < 100.vh() ?
+//                     10.vh() - boxes[index]['pos'].dy * 0.12 :
+//                   boxes[index]['pos'].dy > 100.vh() ?
+//                     boxes[index]['pos'].dy * 0.2 - 8.vh(): 10.vh(),
+
+//         child: child,
+//     );
+
+// animatedController = new AnimationController(
+//  duration: Duration(milliseconds: 3000),
+//  vsync: this,
+// );
+//  return Transform.translate(
+
+//       // offset: Offset( 0, boxes[index]['visible'] ? boxes[index]['pos'].dy * 0.5 : -25.vh()),
+//       offset: Offset( 0, boxes[index]['visible'] && boxes[index]['pos'].dy > 0 && boxes[index]['pos'].dy < 100.vh() &&
+//                   boxes[index]['pos'].dy < 50.vh() ?
+//                     10.vh() - boxes[index]['pos'].dy * 0.12 :
+//                   boxes[index]['pos'].dy > 50.vh() ?
+//                     boxes[index]['pos'].dy * 0.2 - 8.vh(): 10.vh(), ),
+//       child: child,
+//     );
+
+    // offsetAnimation = Tween(
+    //   begin: 0.5,
+    //   end: 1.0,
+    // ).animate(CurvedAnimation(
+    //   parent: animatedController,
+    //   curve: Curves.bounceOut
+    // ));
+
+
+
+
+
+// _controller = AnimationController(
+//       duration: const Duration(seconds: 2),
+//       vsync: this,
+//     );
+//     offsetAnimation = Tween<Offset>(
+//       begin: Offset.zero,
+//       end: const Offset(0.0, 50),
+//     ).animate(CurvedAnimation(
+//       parent: _controller,
+//       curve: Curves.elasticIn,
+//     ));
+
+
+
+// class DynamicHeader extends SliverPersistentHeaderDelegate {
+//   DynamicHeader();
+//   @override
+//     Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+//       return LayoutBuilder(
+//           builder: (context, constraints) {
+//             // final Color color = Colors.primaries[index];
+//             final double percentage = (constraints.maxHeight - minExtent)/(maxExtent - minExtent);
+
+//             // if (++index > Colors.primaries.length-1)
+//             //   index = 0;
+
+//             return Container(
+//               // decoration: BoxDecoration(
+//               //     boxShadow: [BoxShadow(blurRadius: 4.0, color: Colors.black45)],
+//               //     gradient: LinearGradient(
+//               //         colors: [Colors.blue, color]
+//               //     )
+//               // ),
+//               height: constraints.maxHeight,
+//               child: SafeArea(
+//                   child: Center(
+//                     child: CircularProgressIndicator(
+//                       value: percentage,
+//                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+//                     ),
+//                   )
+//               ),
+//             );
+//           }
+//       );
+//     }
+
+//     @override
+//     bool shouldRebuild(SliverPersistentHeaderDelegate _) => true;
+
+//     @override
+//     double get maxExtent => 250.0;
+
+//     @override
+//     double get minExtent => 80.0;
+//   }
+// }

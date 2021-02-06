@@ -33,3 +33,14 @@ extension CalculateViewportDims on int {
     return result;
   }
 }
+
+/// lets try to create a really short condition check
+extension Conditioner on dynamic {
+  /// condition check
+  bool cc() {
+    if ( this ) {
+      return true;
+    }
+    return false;
+  }
+}

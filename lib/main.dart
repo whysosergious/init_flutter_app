@@ -10,12 +10,14 @@ import 'dart:async';
 
 // logic
 import 'methods/calc.dart';
+import 'logic/router.dart';
 
 // typography
 import 'typography/text_styles.dart';
 
 // widgets
-import 'widgets/post.dart';
+import 'widgets/post_elements.dart';
+import 'widgets/main_post.dart';
 
 
 
@@ -32,63 +34,34 @@ PostList posts = new PostList();
 
 
 
-List fbb = [];
+
 class PostList {
   List json;
   List<PostData> list;
   List<Widget> widgets;
-  List fb;
 
-  Future<List<Widget>> fetchData() async {
-    final response = await http.get('https://www.reddit.com/r/$subreddit.json?limit=$fetchLimit&raw_json=1');
-    json = jsonDecode(response.body)['data']['children'];
-    this.sort( this.json );
-    return widgets;
+  void fetchData() {
+
+    final response = http.get('https://www.reddit.com/r/$subreddit.json?limit=$fetchLimit&raw_json=1');
+    response.then((res) {
+
+      json = jsonDecode(res.body)['data']['children'];
+      this.sort( this.json );
+      postList = widgets;
+    });
   }
 
-  void sort( List json ) {
+  sort( List json ) async {
     this.list = [];
     this.widgets = [];
-    this.fb = [];
     for ( int i=0; i<this.json.length; i++ ) {
       this.list.add( PostData.createEntry( json[i]['data'] ) );
       this.widgets.add(Post(this.list[i]));
       // this.widgets.add(SizedBox(height: 20.0));    // _STATIC_MARGIN_
-      this.fb.add( box );
     }
-    fbb = this.fb;
   }
 }
 
-
-Widget box ({ ScrollController controller, GlobalKey boxKey, Offset position }) => AnimatedBuilder(
-              animation: controller,
-              child: Container(
-                  // key: boxes['0']['key'],
-                  key: boxKey,
-                  width: 140,
-                  height: 40,
-                  color: Colors.red,
-                ),
-
-
-
-              builder: (BuildContext context, Widget child) {
-                // if ( rect != null ) {
-                //   position = rect.localToGlobal(Offset.zero);
-                //   print(position.dy);
-                // }
-
-                return AnimatedContainer(
-                  duration: Duration(milliseconds: 400),
-                  curve: Curves.decelerate,
-                  height: controller.offset / 4 + 40,
-                  width: 50,
-                  color: Colors.green,
-                  child: child,
-                );
-              },
-            );
 
 double redditStamp;
 
@@ -107,6 +80,7 @@ class PostData {
   final String permalink;
   List comments;
   bool viewing = false;
+  bool imageLoaded = false;
 
   PostData({
     this.id,
@@ -198,10 +172,15 @@ class ViewPost extends StatelessWidget {
 
                   child: Hero(
                     tag: 'back-button_${postData.id}',
-                    child: Container(
-                      padding: EdgeInsets.only(top: 8, right: 11, bottom: 8, left: 9),
-                      color: Colors.grey[900].withAlpha(177),
-                      child: Image.asset('ass/icons/left_arrow.png'),
+                    child: GestureDetector(
+                      onTap: () {
+                        closeRoute(context, postData);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.only(top: 8, right: 11, bottom: 8, left: 9),
+                        color: Colors.grey[900].withAlpha(177),
+                        child: Image.asset('ass/icons/left_arrow.png'),
+                      ),
                     ),
                   ),
                 )
@@ -221,316 +200,327 @@ class ViewPost extends StatelessWidget {
 
 
 
-void main() => runApp(
-  MaterialApp(
-    // initialRoute: '/home',
-    // routes: <String, WidgetBuilder> {
-    //   '/home': (BuildContext context) => Home(),
-    //   // '/pages': (BuildContext context) => Pages(),
-    //   // '/viewpost': (BuildContext context) => ViewPost(),
-    // },
-    theme: mainTheme(),
-    home: Home(),
-  ),
-);
+void main() {
 
 
+    runApp(
+
+    MaterialApp(
+      // showPerformanceOverlay: true,
+      // initialRoute: '/home',
+      // routes: <String, WidgetBuilder> {
+      //   '/home': (BuildContext context) => Home(),
+      //   // '/pages': (BuildContext context) => Pages(),
+      //   // '/viewpost': (BuildContext context) => ViewPost(),
+      // },
+
+      onGenerateRoute: CustomRouter.generateRoute,
+      initialRoute: '/',
+      theme: mainTheme(),
+      home: Home(),
+    ),
+
+  );
+
+
+}
+
+GlobalKey pageIndexedStackKey = new GlobalKey();
+
+List<Map> boxes = [];
+List<Widget> postList;
 /// variable used by CalculateViewportDims extension in 'methods/calc.dart'
 Size viewportDims;
 
+
+
 /// our main body widget ( for now )
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   @override
-  Widget build( BuildContext context ) {
+  HomeState createState() {
+
+    return HomeState();
+  }
+}
+
+
+class HomeState extends State<Home> with SingleTickerProviderStateMixin {
+  AnimationController animatedController;
+    Animation delayed0, delayed1, delayed2;
+
+
+  @override
+  void initState() {
+    super.initState();
+
+    posts.fetchData();
+  }
+
+  void dispose() {
+    animatedController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     /// setting context size
     viewportDims = MediaQuery.of(context).size;
+
+  int currentPage = 0;
+  final List<Widget> pagesList = [
+    Pages()
+  ];
+
+
     return Scaffold(
-      body: Center(
-        child: Container(
-          height: double.infinity,
-          width: 92.vw(),
-          child: Pages(),
-        ),
+      // resizeToAvoidBottomInset: true,
+      // MediaQueryData.viewInsets
+    // extendBody.type =,
+// persistentFooterButtons: [
+  // RaisedButton(onPressed: (){}),
+// ],
+
+       body: IndexedStack(
+        sizing: StackFit.passthrough,
+        key: pageIndexedStackKey,
+        index: currentPage,
+        children: pagesList,
       ),
+      extendBodyBehindAppBar: true,
+      bottomNavigationBar: BottomNavigationBar(
+        iconSize: 10,
+        elevation: 40,
+
+        backgroundColor: Colors.black87,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+      onTap: (index) {
+        setState(() {
+          // current_tab = index;
+        });
+      },
+      currentIndex: currentPage,
+      items: [
+        BottomNavigationBarItem(
+        // backgroundColor: Colors.green,
+          icon: Image.asset('ass/icons/left_arrow.png', height: 16, width: 20.vw()),
+          label: 'Prev',
+        ),
+        BottomNavigationBarItem(
+          // backgroundColor: Colors.green,
+          icon: Image.asset('ass/icons/right_arrow.png', height: 16, width: 20.vw()),
+          label: 'Next',
+        ),
+        BottomNavigationBarItem(
+          // backgroundColor: Colors.green,
+          icon: Image.asset('ass/icons/right_arrow.png', height: 16, width: 20.vw()),
+          label: 'Next',
+        ),
+        BottomNavigationBarItem(
+          // backgroundColor: Colors.green,
+          icon: Image.asset('ass/icons/left_arrow.png', height: 16, width: 20.vw()),
+          label: 'Prev',
+        ),
+      ],
+      ),
+
+
     );
   }
 }
 
 class Pages extends StatefulWidget {
+
   @override
   PageState createState() {
-    fetch();
+
     return PageState();
   }
 }
 
-List<Widget> postList;
-void fetch() {
-  posts.fetchData().then((val) {
-    postList = val;
-  });
-}
 
-bool fetchNewData = true;
-bool viewingPost;
-class PageState extends State<Pages> {
-  List<Widget> list = postList ?? <Widget>[Container(height: 50, width: 50)];
-  ScrollController controller = ScrollController();
 
-  Map<String, Map<String, dynamic>> boxes = Map<String, Map<String, dynamic>>();
+  bool viewingPost;
+
+
+
+
+class PageState extends State<Pages> with TickerProviderStateMixin {
+  List<Widget> list;
+  ScrollController scrollController = ScrollController();
+
   List<int> initOffsets = [];
+  List<Widget> widgets = [];
+  double mod = 0;
+  Offset pos = Offset(0,0);
+  int selectedPageIndex;
+  List<Widget> pages;
+  PageController pageController;
 
-  Offset position;
-List<Widget> a = [];
-
-RenderBox rect;
-  // @override
+  @override
   void initState() {
-  super.initState();
+    super.initState();
     checkData();
 
+    pageController = PageController();
 
 
-// boxes = { '0': { 'key': GlobalKey() }};
-boxes['0'] = { 'key': GlobalKey() };
 
-    // controller.addListener(() {
-      // height = (controller.offset ~/ 10).toDouble();
+    scrollController.addListener(() {
 
-
-    // });
+      for ( int i = 0; i<postList.length; i++ ) {
+        Offset pos = boxes[i]['rect'].localToGlobal(Offset.zero);
+        if ( pos.dy > -50.vh() && pos.dy < 150.vh()) {
+          boxes[i]['visible'] = true;
+        } else {
+          boxes[i]['visible'] = false;
+        }
+      }
+    });
   }
 
   // @override
   void dispose() {
+    scrollController.dispose();
+    pageController.dispose();
+
     super.dispose();
   }
 
-// yes this is horrible but temporary...
-  bool stateReady = true;
+  // yes this is horrible but temporary...
+  bool stateReady = false;
   void checkData() async {
 
     if (postList == null) {
-      Timer(Duration(milliseconds: 100), () {
+      Timer(Duration(milliseconds: 1000), () {
         checkData();
-        for ( int i = 1; i<4; i++ ) {
-        // boxes['$i'] = { 'key': GlobalKey() };
-        print(i);
-        a.add(this.list[i]);
-        a.add(fbb[i](controller: controller, position: position, boxKey: boxes['0']['key']));
-      }
-      print(boxes);
+
+
       });
     } else {
 
+
+      widgets = [];
+      for ( int i = 0; i<postList.length; i++ ) {
+        boxes.add({ 'key': GlobalKey(), 'mod': mod, 'pos': pos, 'visible': false, 'rect': RenderBox });
+
+        widgets.add( postList[i] );
+        widgets.add(box( index: i, scrollController: scrollController, boxKey: boxes[i]['key'] ));
+
+      }
+
+
       setState(() {
         this.list = postList;
-        stateReady = true;
+        stateReady = false;
       });
       stateReady = await awaitChange();
       Timer(Duration(milliseconds: 400), () {
-        getRect();
+        for ( int i = 0; i<postList.length; i++ ) {
+          getRect(i);
+        }
+
+
       });
 
     }
   }
 
   Future<bool> awaitChange() async {
+
     return true;
   }
-  void getRect() {
-    rect = boxes['0']['key'].currentContext.findRenderObject();
-    position = rect.localToGlobal(Offset.zero);
-    boxes['0']['rect'] = rect;
-    boxes['0']['init_y'] = position.dy.toInt();
-    initOffsets.add(boxes['0']['init_y']);
+  void getRect(int i) {
+    // print(boxes[i]['key'].currentContext.findRenderObject());
+    // print(boxes[i]['key']);
+    boxes[i]['rect'] = boxes[i]['key'].currentContext.findRenderObject();
+    // boxes[i]['pos'] = boxes[i]['rect'].localToGlobal(Offset.zero);
+    // boxes[i]['rect'] = boxes[i]['rect'];
+    // boxes[i]['init_y'] = boxes[i]['pos'].dy.toInt();
+    // initOffsets.add(boxes[i]['init_y']);
     // Timer(Duration(milliseconds: 200), () {
       // getRect();
     // });
+    // stateReadyGl = true;
   }
 
   @override
   Widget build(BuildContext context) {
-    print('a');
-    viewingPost = false;
-    return SingleChildScrollView(
-        controller: controller,
+
+
+    return Scaffold(
+       body: SingleChildScrollView(
+      controller: scrollController,
+      child: Center(
+        child: Container(
+          // height: double.infinity,
+          width: 92.vw(),
+
+
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          verticalDirection: VerticalDirection.up,
         children: [
 
-
-            ...a
+            // PageView(
+            //   controller: pageController,
+            //   children: [
+            //     ...widgets,
+            //   ],
+            // ),
+            ...widgets,
 
 
 
 
           ],
           ),
-
-
-
-
-    );
-  }
-}
-
-
-
-
-
-bool closeRoute( BuildContext context, PostData data ) {
-  data.viewing = false;
-  print(data.viewing);
-  Navigator.of(context).pop('Context closed');
-  return false;
-}
-
-int postWidth = 94;
-bool a = false;
-class Post extends StatelessWidget {
-  final PostData data;
-  Post(this.data);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: GestureDetector(
-        onTap: () {
-
-
-          if ( data.viewing ) {
-            closeRoute(context, data);
-          } else {
-            data.viewing = true;
-            print(data.viewing);
-            Navigator.of(context).push(
-              PageRouteBuilder(
-                opaque: false,
-                transitionDuration: Duration(seconds: 1),
-                reverseTransitionDuration: Duration(seconds: 1),
-
-                pageBuilder:
-                ( BuildContext context,
-                  Animation<double> animation,
-                Animation<double> secondaryAnimation ) {
-                  return ViewPost(data);
-                  // return Align(
-                  //   child: SizeTransition(
-                  //     sizeFactor: animation,
-                  //     child: ViewPost(data),
-                  //   ),
-                  // );
-                },
-                transitionsBuilder:
-                ( BuildContext context,
-                  Animation<double> animation,
-                  Animation<double> secondaryAnimation,
-                Widget child ) {
-                  return Align(
-                    alignment: Alignment.bottomCenter,
-                    child: SizeTransition(
-                      axisAlignment: -1.0,
-                      sizeFactor: animation,
-                      child: child,
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children:  <Widget>[
-
-            IntrinsicHeight(
-              child: Row(
-                children: <Widget>[
-
-                  Hero(
-                    tag: 'back-button-padding_${data.id}',
-                    child: Container(
-                      width: viewingPost ? 8.vw() : 0,
-                      color: Colors.grey[900],
-                    ),
-                  ),
-
-                  (() {
-                    if ( !data.viewing ) {
-                      return Container(
-                        height: 0,
-                        width: 0,
-                        child: Hero(
-                          tag: 'back-button_${data.id}',
-                          child: Container(
-                            padding: EdgeInsets.only(top: 8, right: 11, bottom: 8, left: 9),
-                            color: Colors.grey[900].withAlpha(255),
-                            child: Image.asset('ass/icons/left_arrow.png'),
-                          ),
-                        ),
-                      );
-                    } return Container();
-                  })(),
-
-                  Container(
-                    width: 92.vw(),
-                    child: Hero(
-                      tag: 'title_${data.id}',
-                      child: Material(
-                        child: textGroup(title: data.title, user: 'u/${data.author}', timestamp: '${data.timestamp}', rating: '${data.score}'),
-                      ),
-                    ),
-                  ),
-
-
-                ],
-              ),
-            ),
-
-            if ( data.images[0]['source']['url'] != '' )
-              Hero(
-                tag: 'hero-image_${data.id}',
-                child: FadeInImage.assetNetwork(
-                // height: data.images[0]['source']['height'].toDouble() / (data.images[0]['source']['width'] / postWidth.vw()),
-                placeholder: 'ass/detail/loading_image.png',
-                image: data.images[0]['source']['url'],
-              ),
-            ),
-
-            Container(
-              constraints: BoxConstraints(
-                maxHeight: viewingPost ? double.infinity : 0,
-              ),
-              child: Hero(
-                tag: 'selftext_${data.id}',
-                flightShuttleBuilder:
-                  (BuildContext flightContext,
-                    Animation<double> animation,
-                    HeroFlightDirection flightDirection,
-                    BuildContext fromHeroContext,
-                  BuildContext toHeroContext,) {
-
-                    return SingleChildScrollView(
-                      child: fromHeroContext.widget,
-                    );
-                  },
-                child: Material(
-                  child: selfText(data.selftext + 'Post text'),
-                ),
-              ),
-            ),
-
-            Hero(
-              tag: 'details_${data.id}',
-              child: Material( child: detailsGroup(commentsCount: '${data.score} Comments')),
-            ),
-
-          ],
+          ),
         ),
       ),
     );
   }
 }
+
+
+bool stateReadyGl = false;
+
+
+Widget box ({ int index, ScrollController scrollController, GlobalKey boxKey }) => AnimatedBuilder(
+
+  animation: scrollController,
+  child: Container(
+      key: boxKey,
+
+      // child: post,
+    ),
+
+
+
+  builder: (BuildContext context, Widget child) {
+
+
+    if(boxes[index]['visible']) {
+      boxes[index]['pos'] = boxes[index]['rect'].localToGlobal(Offset.zero);
+      // print(boxes[index]['pos'].dy);
+
+    }
+
+    return AnimatedContainer(
+        duration: Duration(milliseconds: 900),
+        curve: Curves.easeOutCirc,
+        height: 30,
+
+
+        child: child,
+    );
+  }
+);
+
+
+
+
 
 
 

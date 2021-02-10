@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import '../typography/text_styles.dart';
+import '../methods/calc.dart';
 
 
 const String userThumb = 'https://i1.sndcdn.com/avatars-000714205285-8ez60r-t240x240.jpg';
@@ -30,13 +31,17 @@ Widget textGroup({
     crossAxisAlignment: CrossAxisAlignment.start,
 
     children: <Widget>[
+      SizedBox(height: 4),
       Container(
-        margin: EdgeInsets.only(bottom: 10.0, right: 10.0),
-        child: Row(
+        child: 
+          Row(
 
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Row(
+            
+            
+              // Expanded( child: 
+              Row(
               children: <Widget>[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(24.0),
@@ -44,30 +49,50 @@ Widget textGroup({
                 ),
 
                 SizedBox(width: 10.0),  // _MARGIN_
+                Container(
 
-                Text(user, style: textStyle.details.custom(color: Colors.orange[700])),
+                constraints: BoxConstraints(
 
+                      maxWidth: 37.vw(),
+                    ),
+                child: Text( user, overflow: TextOverflow.clip, softWrap: false, style: textStyle.details.custom(color: Colors.orange[700])),
+                ),
                 SizedBox(width: 10.0),  // _MARGIN_
 
-                Text(timestamp, style: textStyle.details),
+                Text(timestamp, overflow: TextOverflow.ellipsis, style: textStyle.details),
               ],
             ),
+            
+
+            
             Row(
               children: <Widget>[
                 Image.asset('ass/icons/up_vote.png', height: 20.0),
 
                 SizedBox(width: 7.0),  // _MARGIN_
-
+ 
                 Text(rating, style: textStyle.stats.custom(fontSize: 15.5, color: Colors.white)),
+
+                SizedBox(width: 10.0),  
               ],
             ),
-
+            
           ],
+        
         ),
+        
       ),
-      (title != null)
-        ? Text(title, style: textStyle.title)
-        : Text(comment, style: textStyle.bodySmall),
+      Column( 
+        children: <Widget>[
+          SizedBox(height: 10),
+      
+          
+          (title != null)
+          ? Text(title, style: textStyle.title)
+          : Text(comment, style: textStyle.bodySmall),
+          SizedBox(height: 4),
+        ],
+      ),      
     ],
   ),
 );
@@ -109,18 +134,6 @@ Widget detailsGroup({
           ),
         ],
       ),
-
-      // SizedBox(height: 10.0),  // _MARGIN_
-
-      // const SizedBox(
-      //   width: 260.0,
-      //   height: 1.0,
-      //   child: const DecoratedBox(
-      //     decoration: const BoxDecoration(
-      //       color: Colors.black12,
-      //     ),
-      //   ),
-      // ),
     ],
   ),
 );
@@ -129,7 +142,7 @@ Widget detailsGroup({
 Widget selfText(String selftext) => Container(
   color: Colors.grey[900],
   width: double.infinity,
-  padding: EdgeInsets.only(top: 10.0, right: 10.0, bottom: 10.0, left: 10.0),
+  padding: EdgeInsets.only(top: 10.0, right: 15.0, bottom: 25.0, left: 20.0),
   child: Column(
     children: <Widget>[
       Align(
@@ -139,15 +152,6 @@ Widget selfText(String selftext) => Container(
 
       SizedBox(height: 4.0),  // _MARGIN_
 
-      // const SizedBox(
-      //   width: 260.0,
-      //   height: 1.0,
-      //   child: const DecoratedBox(
-      //     decoration: const BoxDecoration(
-      //       color: Colors.black12,
-      //     ),
-      //   ),
-      // ),
     ],
   ),
 );
@@ -158,7 +162,7 @@ Widget loadMoreComments() => Container(
   padding: EdgeInsets.only(top: 14.0, right: 16.0, bottom: 20.0, left: 10.0),
   // margin: EdgeInsets.only(bottom: 10.0),
   child: Center(
-    child: Text('View More Comments', style: textStyle.stats.custom(fontSize: 15.5)
+    child: Text('', style: textStyle.stats.custom(fontSize: 15.5)
     ),
   ),
 );

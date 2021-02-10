@@ -56,7 +56,10 @@ flutter:
     - ass/icons/down_vote.png
     - ass/icons/left_arrow.png
     - ass/icons/right_arrow.png
+    - ass/icons/home.png
+    - ass/icons/settings.png
     - ass/detail/loading_image.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -44,3 +44,23 @@ extension Conditioner on dynamic {
     return false;
   }
 }
+
+/// formatting timestamp
+double currentUnixTimeStamp = DateTime.now().millisecondsSinceEpoch / 1000;
+extension TimeStampFormat on double {
+  String humanTimestamp() {
+    double time = (currentUnixTimeStamp - this) / 60;
+
+    String result = time > 107040 ? '${ time ~/ 107040 } years ago'
+      : time > 53520 ? 'a year ago'
+      : time > 8920 ? '${ time ~/ 1440 } months ago'
+      : time > 4460 ? 'a month ago'
+      : time > 2880 ? '${ time ~/ 1440 } days ago'
+      : time > 1440 ? 'a day ago'
+      : time > 120 ? '${ time ~/ 60 } hours ago'
+      : time > 60 ? 'an hour ago'
+      : time > 1 ? '${time.toInt()} minutes ago' : 'a minute ago' ;
+
+    return result;
+  }
+}

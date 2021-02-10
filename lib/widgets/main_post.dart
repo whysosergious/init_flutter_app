@@ -2,15 +2,9 @@
 import 'package:flutter/material.dart';
 import '../methods/calc.dart';
 
-// logic
-// import '../logic/router.dart';
-
-// well.. main..
-import '../main.dart';
-
 // widgets
 import 'post_elements.dart';
-
+import '../logic/fetch.dart';
 
 
 class Post extends StatelessWidget {
@@ -23,15 +17,11 @@ class Post extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
 
-
           if ( data.viewing ) {
             // closeRoute(context, data);
           } else {
             data.viewing = true;
-
-            // Navigator.of(context).push(
             Navigator.pushNamed( context, '/post', arguments: data );
-            // );
           }
         },
         child: Column(
@@ -101,11 +91,11 @@ class Post extends StatelessWidget {
                       minHeight: data.imageLoaded ? 0 : data.images[0]['source']['height'].toDouble() / (data.images[0]['source']['width'] / 92.vw()),
                       minWidth: data.imageLoaded ? 0 : 92.vw(),
                     ),
-
+                    width: 100.vw(),
 
                     child: Image.network(
                       data.images[0]['source']['url'],
-                      // fit: BoxFit.cover,
+                      fit: BoxFit.fitWidth,
                       loadingBuilder: (BuildContext context,
                         child,
                     ImageChunkEvent loadingProgress) {
@@ -131,6 +121,45 @@ class Post extends StatelessWidget {
               ),
             ],
 
+            // if ( data.album[0]['source']['url'] != '' ) ...[
+
+            //   Hero(
+            //     tag: 'hero-almbum_${data.id}',
+            //     child: Container(
+            //         constraints: BoxConstraints(
+            //           // minHeight: data.imageLoaded ? 0 : data.images[0]['source']['height'].toDouble() / (data.images[0]['source']['width'] / 92.vw()),
+            //           maxHeight: data.viewing ? 10.vh() : 0,
+            //         ),
+            //         width: 100.vw(),
+
+            //         child: Image.network(
+            //           data.images[0]['source']['url'],
+            //           fit: BoxFit.fitWidth,
+            //           loadingBuilder: (BuildContext context,
+            //             child,
+            //         ImageChunkEvent loadingProgress) {
+            //           if (loadingProgress == null) {
+            //             data.imageLoaded = true;
+            //             return child;
+            //           }
+            //         return Center(
+
+            //           child: CircularProgressIndicator(
+            //             strokeWidth: 20,
+            //             semanticsLabel: 'Loading Image',
+            //             valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[700]),
+            //             value: loadingProgress.expectedTotalBytes != null ?
+            //             loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes
+            //             : null,
+
+            //             ),
+            //           );
+            //         }
+            //       ),
+            //     ),
+            //   ),
+            // ],
+
             Container(
               constraints: BoxConstraints(
                 maxHeight: data.viewing ? double.infinity : 0,
@@ -145,11 +174,11 @@ class Post extends StatelessWidget {
                   BuildContext toHeroContext,) {
 
                     return SingleChildScrollView(
-                      child: fromHeroContext.widget,
+                      child: toHeroContext.widget,
                     );
                   },
                 child: Material(
-                  child: selfText(data.selftext + 'Post text'),
+                  child: selfText(data.selftext),
                 ),
               ),
             ),

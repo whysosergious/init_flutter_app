@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 /// I like shorter definitions .. this class gives us a shorter syntax when defining text style
 class ThemeTextStyle {
-    TextStyle title = TextStyle(fontFamily: 'RoboSlab', fontSize: 18.0, fontWeight: FontWeight.w600, color: Colors.white); // [ titles and headings ]
+    TextStyle title = TextStyle(  fontFamily: 'RoboSlab', fontSize: 18.0, fontWeight: FontWeight.w600, color: Colors.white); // [ titles and headings ]
     TextStyle details = TextStyle(fontFamily: 'RoboSlab', fontSize: 13.0, color: Colors.brown[300]); // [ details (users, timestamps) ]
     TextStyle stats = TextStyle(fontFamily: 'Montserrat', fontSize: 14.0, fontWeight: FontWeight.w400, color: Colors.brown[200]); // [ stats (comment counts, ratings) ]
     TextStyle body = TextStyle(fontFamily: 'RoboSlab', fontSize: 16.0); // [ body (selftext) ]
@@ -28,7 +28,7 @@ ThemeData mainTheme() {
 
     // default font family
     fontFamily: 'RoboSlab',
-
+    
     // apply text styles to theme
     textTheme: TextTheme(
       headline1: textStyle.title,

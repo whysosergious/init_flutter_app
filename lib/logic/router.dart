@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
+import 'fetch.dart';
+import '../widgets/home.dart';
+import '../widgets/pages.dart';
+import '../widgets/view_post.dart';
 
 
-bool closeRoute( BuildContext context, PostData data ) {
+bool closeRoute( BuildContext context, [ PostData data ]) {
   data.viewing = false;
 
   Navigator.of(context).pop('Context closed');
@@ -16,8 +19,9 @@ class CustomRouter {
         return MaterialPageRoute(builder: (_) => Home());
       case '/post':
         PostData data = settings.arguments as PostData;
-        // return MaterialPageRoute(builder: (_) => );
         return customRoute(ViewPost(data));
+      case '/pages':
+        return customRoute(Pages());
       default:
         return MaterialPageRoute(
             builder: (_) => Scaffold(
@@ -32,8 +36,8 @@ class CustomRouter {
 Route<dynamic> customRoute( Widget destination ) {
   return PageRouteBuilder(
     opaque: false,
-    transitionDuration: Duration(seconds: 1),
-    reverseTransitionDuration: Duration(seconds: 1),
+    transitionDuration: Duration(milliseconds: 400),
+    reverseTransitionDuration: Duration(milliseconds: 400),
 
     pageBuilder:
     ( BuildContext context,
